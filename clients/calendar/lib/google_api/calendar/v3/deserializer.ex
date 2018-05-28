@@ -18,57 +18,59 @@
 
 defmodule GoogleApi.Calendar.V3.Deserializer do
   @moduledoc """
-  Helper functions for deserializing responses into models
+  Helper functions for deserializing responses into structs
   """
+
+  import Poison.Decode, only: [decode: 2]
+  import Poison.Encoder, only: [encode: 2]
 
   @doc """
-  Update the provided model with a deserialization of a nested value
+  Update the provided struct with a deserialized nested value
   """
   @spec deserialize(struct(), atom(), atom(), module(), keyword()) :: any()
-  def deserialize(model, _field, :list, nil, _options), do: model
+  def deserialize(struct, _field, :list, nil, _options), do: struct
 
-  def deserialize(model, field, :list, mod, options) do
-    model
-    |> Map.update!(field, &Poison.Decode.decode(&1, Keyword.merge(options, as: [struct(mod)])))
+  def deserialize(struct, field, :list, mod, options) do
+    opts = Keyword.merge(options, as: [struct(mod)])
+    Map.update!(struct, field, &decode(&1, opts))
   end
 
-  def deserialize(model, field, :struct, mod, options) do
-    model
-    |> Map.update!(field, &Poison.Decode.decode(&1, Keyword.merge(options, as: struct(mod))))
+  def deserialize(struct, field, :struct, mod, options) do
+    opts = Keyword.merge(options, as: struct(mod))
+    Map.update!(struct, field, &decode(&1, opts))
   end
 
-  def deserialize(model, _field, :map, nil, _options), do: model
+  def deserialize(struct, _field, :map, nil, _options), do: struct
 
-  def deserialize(model, field, :map, mod, options) do
-    model
-    |> Map.update!(
+  def deserialize(struct, field, :map, mod, options) do
+    Map.update!(
+      struct
       field,
       &Map.new(&1 || %{}, fn {key, val} ->
-        {key, Poison.Decode.decode(val, Keyword.merge(options, as: struct(mod)))}
+        opts = Keyword.merge(options, as: struct(mod))
+        {key, decode(val, opts)}
       end)
     )
   end
 
-  def deserialize(model, field, :date, _, _options) do
-    Map.update(model, field, nil, &parse_date/1)
+  def deserialize(struct, field, :date, _, _options) do
+    Map.update(struct, field, nil, &parse_date/1)
   end
 
-  defp parse_date(nil) do
-    nil
+  def serialize_non_nil(struct, options) do
+    struct
+    |> Map.from_struct()
+    |> Enum.filter(fn {_k, v} -> v != nil end)
+    |> Enum.into(%{})
+    |> encode(options)
   end
+
+  defp parse_date(nil), do: nil
 
   defp parse_date(iso8601) do
     case DateTime.from_iso8601(iso8601) do
       {:ok, datetime, _offset} -> datetime
       _ -> iso8601
     end
-  end
-
-  def serialize_non_nil(model, options) do
-    model
-    |> Map.from_struct()
-    |> Enum.filter(fn {_k, v} -> v != nil end)
-    |> Enum.into(%{})
-    |> Poison.Encoder.encode(options)
   end
 end

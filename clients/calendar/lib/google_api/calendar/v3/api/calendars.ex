@@ -21,8 +21,8 @@ defmodule GoogleApi.Calendar.V3.Api.Calendars do
   API calls for all endpoints tagged `Calendars`.
   """
 
-  alias GoogleApi.Calendar.V3.Connection
   import GoogleApi.Calendar.V3.RequestBuilder
+  alias GoogleApi.Calendar.V3.Connection
 
   @doc """
   Clears a primary calendar. This operation deletes all events associated with the primary calendar of an account.
@@ -69,6 +69,16 @@ defmodule GoogleApi.Calendar.V3.Api.Calendars do
     |> decode(false)
   end
 
+  @delete_optional_params %{
+    alt: :query,
+    fields: :query,
+    key: :query,
+    oauth_token: :query,
+    prettyPrint: :query,
+    quotaUser: :query,
+    userIp: :query
+  }
+
   @doc """
   Deletes a secondary calendar. Use calendars.clear for clearing all events on primary calendars.
 
@@ -93,22 +103,12 @@ defmodule GoogleApi.Calendar.V3.Api.Calendars do
   @spec calendar_calendars_delete(Tesla.Env.client(), String.t(), keyword()) ::
           {:ok, nil} | {:error, Tesla.Env.t()}
   def calendar_calendars_delete(connection, calendar_id, opts \\ []) do
-    optional_params = %{
-      :alt => :query,
-      :fields => :query,
-      :key => :query,
-      :oauth_token => :query,
-      :prettyPrint => :query,
-      :quotaUser => :query,
-      :userIp => :query
-    }
-
     %{}
     |> method(:delete)
     |> url("/calendars/{calendarId}", %{
       "calendarId" => URI.encode_www_form(calendar_id)
     })
-    |> add_optional_params(optional_params, opts)
+    |> add_optional_params(@delete_optional_params, opts)
     |> Enum.into([])
     |> (&Connection.request(connection, &1)).()
     |> decode(false)
@@ -173,7 +173,7 @@ defmodule GoogleApi.Calendar.V3.Api.Calendars do
     - :prettyPrint (boolean()): Returns response with indentations and line breaks.
     - :quotaUser (String.t): An opaque string that represents a user for quota purposes. Must not exceed 40 characters.
     - :userIp (String.t): Deprecated. Please use quotaUser instead.
-    - :body (Calendar): 
+    - :body (Calendar):
 
   ## Returns
 
@@ -218,7 +218,7 @@ defmodule GoogleApi.Calendar.V3.Api.Calendars do
     - :prettyPrint (boolean()): Returns response with indentations and line breaks.
     - :quotaUser (String.t): An opaque string that represents a user for quota purposes. Must not exceed 40 characters.
     - :userIp (String.t): Deprecated. Please use quotaUser instead.
-    - :body (Calendar): 
+    - :body (Calendar):
 
   ## Returns
 
@@ -265,7 +265,7 @@ defmodule GoogleApi.Calendar.V3.Api.Calendars do
     - :prettyPrint (boolean()): Returns response with indentations and line breaks.
     - :quotaUser (String.t): An opaque string that represents a user for quota purposes. Must not exceed 40 characters.
     - :userIp (String.t): Deprecated. Please use quotaUser instead.
-    - :body (Calendar): 
+    - :body (Calendar):
 
   ## Returns
 
